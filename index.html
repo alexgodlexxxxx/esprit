@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esprit Treilhard — Générateur</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro", sans-serif; 
+            background: #f8f8f8; 
+            color: #1a1a1a; 
+            height: 100vh; 
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .container { 
+            display: grid; 
+            grid-template-columns: 1fr 320px; 
+            height: 100vh; 
+            gap: 0;
+        }
+        
+        /* ZONE CANVAS */
+        .canvas-wrapper { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background: #ececec;
+            padding: 40px;
+            position: relative;
+        }
+        
+        #canvas-container canvas { 
+            box-shadow: 
+                0 2px 8px rgba(0,0,0,0.04),
+                0 8px 40px rgba(0,0,0,0.08);
+            background: white;
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain;
+            border-radius: 2px;
+        }
+        
+        /* PANNEAU LATÉRAL */
+        .panel { 
+            background: #fff; 
+            padding: 0;
+            border-left: 1px solid #e0e0e0; 
+            display: flex; 
+            flex-direction: column; 
+            overflow-y: auto;
+        }
+        
+        .panel-header { 
+            padding: 32px 24px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+        
+        .panel-title {
+            font-size: 20px; 
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+            color: #111;
+        }
+        
+        .panel-subtitle {
+            font-size: 13px;
+            color: #999;
+            font-weight: 400;
+        }
+        
+        /* CONTRÔLES */
+        .controls-wrapper {
+            padding: 24px;
+            flex-grow: 1;
+        }
+        
+        .control-section {
+            margin-bottom: 32px;
+        }
+        
+        .section-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #aaa;
+            margin-bottom: 16px;
+            padding-left: 2px;
+        }
+        
+        .control-group { 
+            margin-bottom: 20px;
+        }
+        
+        .control-group label { 
+            font-size: 13px; 
+            font-weight: 500;
+            color: #444;
+            display: flex; 
+            justify-content: space-between;
+            margin-bottom: 10px;
+            align-items: baseline;
+        }
+        
+        .control-value {
+            font-weight: 600;
+            color: #111;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        input[type="range"] { 
+            width: 100%; 
+            cursor: pointer;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #e8e8e8;
+            border-radius: 2px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #222;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #222;
+            cursor: pointer;
+            border: none;
+        }
+        
+        /* CHECKBOX ANIMATION */
+        .checkbox-group { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+            padding: 16px;
+            background: #fafafa;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            border: 1px solid #f0f0f0;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .checkbox-group label {
+            font-size: 14px; 
+            font-weight: 500;
+            color: #333;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        /* ACTIONS */
+        .actions { 
+            padding: 24px;
+            border-top: 1px solid #f0f0f0;
+            background: #fafafa;
+        }
+        
+        button { 
+            width: 100%;
+            padding: 16px; 
+            border: none; 
+            border-radius: 8px; 
+            font-weight: 600;
+            cursor: pointer; 
+            text-transform: uppercase; 
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            transition: all 0.2s ease;
+        }
+        
+        #genbtn { 
+            background: #222; 
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+        
+        #genbtn:hover { 
+            background: #000;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+        }
+        
+        #genbtn:active {
+            transform: translateY(0);
+        }
+        
+        .info-text { 
+            font-size: 11px; 
+            color: #aaa; 
+            text-align: center; 
+            margin-top: 12px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="canvas-wrapper" id="canvas-container"></div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">Esprit Treilhard</div>
+                <div class="panel-subtitle">Générateur de variations</div>
+            </div>
+            
+            <div class="controls-wrapper">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="animCheck">
+                    <label for="animCheck">Animation serpent 🐍</label>
+                </div>
+
+                <div class="control-section">
+                    <div class="section-label">Position</div>
+                    <div class="control-group">
+                        <label>Verticale <span class="control-value" id="vslider_val">0</span></label>
+                        <input type="range" id="vslider" min="-80" max="80" value="0">
+                    </div>
+                    <div class="control-group">
+                        <label>Horizontale <span class="control-value" id="hslider_val">0</span></label>
+                        <input type="range" id="hslider" min="-150" max="150" value="0">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <div class="section-label">Forme</div>
+                    <div class="control-group">
+                        <label>Épaisseur <span class="control-value" id="tslider_val">10</span></label>
+                        <input type="range" id="tslider" min="5" max="30" value="10">
+                    </div>
+                    <div class="control-group">
+                        <label>Chaos <span class="control-value" id="wslider_val">3</span></label>
+                        <input type="range" id="wslider" min="1" max="8" step="0.5" value="3">
+                    </div>
+                    <div class="control-group">
+                        <label>Longueur <span class="control-value" id="lslider_val">1</span></label>
+                        <input type="range" id="lslider" min="0.2" max="1" step="0.1" value="1">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <div class="section-label">Logo</div>
+                    <div class="control-group">
+                        <label>Échelle <span class="control-value" id="logoslider_val">1</span></label>
+                        <input type="range" id="logoslider" min="0.5" max="2" step="0.1" value="1">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button id="genbtn">Générer Variations</button>
+                <div class="info-text">Clic sur une case pour exporter en SVG</div>
+            </div>
+        </div>
+    </div>
+    <script src="sketch.js"></script>
+</body>
+</html>
+
